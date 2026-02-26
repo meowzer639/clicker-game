@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stimulation Spiral</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
+  <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="sound-controls fixed" aria-label="Sound controls">
+    <button id="mute-toggle" class="sound-btn" type="button" aria-pressed="false">Sound: On</button>
+    <button id="click-toggle" class="sound-btn" type="button" aria-pressed="false">Click: On</button>
+    <button id="purchase-toggle" class="sound-btn" type="button" aria-pressed="false">Buy: On</button>
+  </div>
+
+  <main class="app">
+    <header class="topbar">
+      <h1>Stimulation Spiral</h1>
+      <div class="stats">
+        <p>Stimulation: <span id="stim-value">0</span></p>
+        <p>Per Click: <span id="click-power">1</span></p>
+        <p>Per Sec: <span id="sps-value">0</span></p>
+      </div>
+    </header>
+
+    <section class="meter-row">
+      <div class="meter">
+        <label>Overload</label>
+        <div class="meter-track"><span id="overload-fill"></span></div>
+      </div>
+      <div class="meter">
+        <label>Hype</label>
+        <div class="meter-track"><span id="hype-fill"></span></div>
+      </div>
+      <div class="meter">
+        <label>Focus Drift</label>
+        <div class="meter-track"><span id="drift-fill"></span></div>
+      </div>
+    </section>
+
+    <section class="center">
+      <button id="tap-btn" class="tap-btn">CLICK FOR MORE</button>
+      <p id="status-line" class="status-line">You are calm... for now.</p>
+    </section>
+
+    <section class="shop">
+      <h2>Upgrades</h2>
+      <div id="shop-list" class="shop-list"></div>
+    </section>
+  </main>
+
+  <template id="shop-item-template">
+    <article class="shop-item">
+      <div>
+        <h3 class="name"></h3>
+        <p class="desc"></p>
+      </div>
+      <button class="buy-btn"></button>
+    </article>
+  </template>
+
+  <script src="./script.js"></script>
+</body>
+</html>
