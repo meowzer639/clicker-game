@@ -90,6 +90,50 @@ const upgrades = [
   }
 ];
 
+// Saves stay in this browser; derived power is stored to preserve purchase order.
+const SAVE_KEY = "stimulation-spiral-save-v1";
+
+function saveGame() {
+  try {
+    window.localStorage.setItem(SAVE_KEY, JSON.stringify({
+      version: 1,
+      game: { ...game },
+      upgrades: Object.fromEntries(upgrades.map(upgrade => [upgrade.key, upgrade.level])),
+      sound: { ...soundState }
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function loadGame() {
+  try {
+    const raw = window.localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved || saved.version !== 1 || !saved.game || !saved.upgrades || !saved.sound) return false;
+    const nextGame = {};
+    for (const key of Object.keys(game)) {
+      const value = saved.game[key];
+      if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return false;
+      nextGame[key] = value;
+    }
+    if (nextGame.clickPower < 1 || !Number.isSafeInteger(nextGame.totalClicks)) return false;
+    if (["overload", "hype", "drift"].some(key => nextGame[key] > 100)) return false;
+    const levels = upgrades.map(upgrade => saved.upgrades[upgrade.key]);
+    if (levels.some(level => !Number.isSafeInteger(level) || level < 0)) return false;
+    if (Object.keys(soundState).some(key => typeof saved.sound[key] !== "boolean")) return false;
+    // Validate everything before changing live state. Never replay apply().
+    Object.assign(game, nextGame);
+    upgrades.forEach((upgrade, index) => { upgrade.level = levels[index]; });
+    for (const key of Object.keys(soundState)) soundState[key] = saved.sound[key];
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function formatNumber(value) {
   if (value < 1000) return String(Math.floor(value));
   if (value < 1000000) return `${(value / 1000).toFixed(1)}K`;
@@ -184,14 +228,17 @@ function initSoundControls() {
   muteToggleEl.addEventListener("click", () => {
     soundState.master = !soundState.master;
     renderSoundControls();
+    saveGame();
   });
   clickToggleEl.addEventListener("click", () => {
     soundState.click = !soundState.click;
     renderSoundControls();
+    saveGame();
   });
   purchaseToggleEl.addEventListener("click", () => {
     soundState.purchase = !soundState.purchase;
     renderSoundControls();
+    saveGame();
   });
   renderSoundControls();
 }
@@ -220,6 +267,7 @@ function buyUpgrade(index, event) {
   upgrade.justPurchased = true;
   game.hype = Math.min(100, game.hype + 6);
   game.overload = Math.min(100, game.overload + 3);
+  saveGame();
   showToast(`Purchased ${upgrade.name}`);
   playPurchaseSound();
   if (event) {
@@ -308,7 +356,14 @@ function tick() {
 
 tapBtn.addEventListener("click", tap);
 
+const restored = loadGame();
 initShop();
 initSoundControls();
 render();
 window.setInterval(tick, 100);
+window.setInterval(saveGame, 5000);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") saveGame();
+});
+window.addEventListener("pagehide", saveGame);
+if (restored) showToast("Progress restored");
